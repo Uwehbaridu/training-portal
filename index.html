@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#004a99">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Training Portal">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>Indorama Training Portal</title>
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; padding: 0; width: 100%; min-height: 100vh; overflow-x: hidden; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f0f2f5;
+      padding: 10px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    @media (min-width: 600px) {
+      .container { border-radius: 12px; margin-top: 20px; }
+    }
+
+    h2 {
+      text-align: center;
+      color: #004a99;
+      font-size: 1.25rem;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #004a99;
+    }
+
+    .form-group { margin-bottom: 15px; }
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #555;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #bdc3c7;
+      border-radius: 8px;
+      font-size: 16px;
+      background: #fff;
+    }
+
+    input[readonly] {
+      background: #f8f9fa;
+      color: #7f8c8d;
+      border: 1px dashed #dcdde1;
+    }
+
+    input.manual-entry {
+      background: #fffbea;
+      border: 1.5px solid #f0c040;
+      color: #333;
+    }
+
+    select.manual-entry {
+      background: #fffbea;
+      border: 1.5px solid #f0c040;
+      color: #333;
+    }
+
+    .btn-verify {
+      background: #004a99;
+      color: white;
+      border: none;
+      padding: 14px;
+      width: 100%;
+      border-radius: 8px;
+      font-weight: bold;
+      margin-top: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .btn-submit {
+      background: #27ae60;
+      color: white;
+      border: none;
+      padding: 18px;
+      width: 100%;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin-top: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      cursor: pointer;
+    }
+
+    .btn-submit:active, .btn-verify:active { transform: translateY(2px); }
+    .btn-submit:disabled, .btn-verify:disabled { background: #aaa; cursor: not-allowed; }
+
+    #loader {
+      color: #004a99;
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: bold;
+      display: none;
+      margin: 10px 0;
+    }
+
+    .notice {
+      display: none;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+    .notice.warning {
+      background: #fff8e1;
+      border: 1px solid #f0c040;
+      color: #7a5c00;
+    }
+    .notice.success {
+      background: #eafaf1;
+      border: 1px solid #27ae60;
+      color: #1a5e36;
+    }
+
+    /* Autocomplete */
+    .autocomplete-wrapper { position: relative; }
+
+    #courseSearch {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #bdc3c7;
+      border-radius: 8px;
+      font-size: 16px;
+      background: #fff;
+    }
+
+    #courseSearch:focus {
+      outline: none;
+      border-color: #004a99;
+      box-shadow: 0 0 0 2px rgba(0,74,153,0.15);
+    }
+
+    #courseDropdown {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0; right: 0;
+      background: white;
+      border: 1px solid #bdc3c7;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 999;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    .course-option {
+      padding: 12px 14px;
+      font-size: 15px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .course-option:last-child { border-bottom: none; }
+    .course-option:hover, .course-option.active {
+      background: #e8f0fe;
+      color: #004a99;
+    }
+
+    .no-results {
+      padding: 12px 14px;
+      font-size: 14px;
+      color: #999;
+      font-style: italic;
+    }
+
+    /* Verified section */
+    #verifiedSection { display: none; }
+
+    /* Offline banner */
+    #offlineBanner {
+      display: none;
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      color: #856404;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+
+    /* Thank You Page */
+    #thankYouPage {
+      display: none;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: #f0f2f5;
+    }
+
+    .thankyou-card {
+      background: white;
+      border-radius: 16px;
+      padding: 48px 28px;
+      text-align: center;
+      max-width: 520px;
+      margin: 40px auto 0;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    .thankyou-icon {
+      font-size: 68px;
+      display: block;
+      margin-bottom: 16px;
+    }
+
+    .thankyou-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #004a99;
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+
+    .thankyou-divider {
+      width: 60px;
+      height: 3px;
+      background: #004a99;
+      border-radius: 2px;
+      margin: 16px auto 20px;
+    }
+
+    .thankyou-message {
+      font-size: 15px;
+      color: #444;
+      line-height: 1.8;
+      margin-bottom: 32px;
+    }
+
+    .thankyou-message strong { color: #004a99; }
+
+    .btn-back {
+      background: #004a99;
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+      width: 100%;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .btn-back:active { background: #1b3a5a; transform: translateY(2px); }
+
+    @media (min-width: 480px) {
+      .thankyou-card { padding: 60px 48px; }
+      .thankyou-title { font-size: 22px; }
+      .btn-back { width: auto; padding: 16px 48px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── FORM PAGE ─────────────────────────────────────────── -->
+<div id="formPage">
+  <div class="container">
+    <h2>INDORAMA TRAINING PORTAL</h2>
+
+    <div id="offlineBanner">
+      ⚠ You are offline. Please connect to the internet to submit attendance.
+    </div>
+
+    <!-- Employee ID -->
+    <div class="form-group">
+      <label>Employee ID</label>
+      <input type="text" id="empId"
+             placeholder="Enter ID (e.g. SR08123)"
+             autocomplete="off">
+    </div>
+
+    <!-- Course Title -->
+    <div class="form-group">
+      <label>Course Title</label>
+      <div class="autocomplete-wrapper">
+        <input type="text" id="courseSearch"
+               placeholder="Type to search course..."
+               autocomplete="off"
+               oninput="filterCourses()"
+               onfocus="showDropdown()"
+               onkeydown="handleKey(event)">
+        <input type="hidden" id="selectedCourse">
+        <div id="courseDropdown"></div>
+      </div>
+    </div>
+
+    <!-- VERIFY button -->
+    <button class="btn-verify" id="verifyBtn" onclick="verifyAll()">VERIFY</button>
+
+    <div id="loader">Processing...</div>
+
+    <!-- Status notices -->
+    <div id="noticeFound" class="notice success">
+      ✔ Employee found. Details loaded automatically.
+    </div>
+    <div id="noticeNotFound" class="notice warning">
+      ⚠ ID not found in database. Please fill in the details below manually.
+    </div>
+
+    <!-- Fields that appear ONLY after verify -->
+    <div id="verifiedSection">
+
+      <!-- FOUND MODE -->
+      <div id="foundFields">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="name" readonly>
+        </div>
+        <div class="form-group">
+          <label>Department</label>
+          <input type="text" id="dept" readonly>
+        </div>
+        <div class="form-group">
+          <label>Faculty</label>
+          <input type="text" id="faculty" readonly>
+        </div>
+      </div>
+
+      <!-- NOT FOUND MODE -->
+      <div id="notFoundFields" style="display:none">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="nameManual"
+                 placeholder="Enter your full name"
+                 class="manual-entry">
+        </div>
+        <div class="form-group">
+          <label>Department</label>
+          <input type="text" id="deptManual"
+                 placeholder="Enter your department"
+                 class="manual-entry">
+        </div>
+        <div class="form-group">
+          <label>Gender</label>
+          <select id="genderManual" class="manual-entry">
+            <option value="">-- Select Gender --</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Company</label>
+          <input type="text" id="companyManual"
+                 placeholder="Enter your company"
+                 class="manual-entry">
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Training Date -->
+    <div class="form-group">
+      <label>Training Date</label>
+      <input type="date" id="startDate">
+    </div>
+
+    <!-- Hidden fields -->
+    <input type="hidden" id="endDate">
+    <input type="hidden" id="gender">
+    <input type="hidden" id="company">
+    <input type="hidden" id="empType">
+    <input type="hidden" id="staffCat">
+    <input type="hidden" id="trainingType">
+    <input type="hidden" id="category">
+    <input type="hidden" id="location">
+    <input type="hidden" id="hours">
+    <input type="hidden" id="days">
+    <input type="hidden" id="manHours">
+
+    <button class="btn-submit" id="subBtn"
+            onclick="submitRecord()">SUBMIT ATTENDANCE</button>
+  </div>
+</div>
+
+<!-- ── THANK YOU PAGE ────────────────────────────────────── -->
+<div id="thankYouPage">
+  <div class="thankyou-card">
+    <span class="thankyou-icon">🎉</span>
+    <div class="thankyou-title">
+      You have successfully registered for today's training!
+    </div>
+    <div class="thankyou-divider"></div>
+    <div class="thankyou-message">
+      Thanks for coming for the
+      <strong id="thankYouCourse"></strong> training.<br><br>
+      Get your pen and pad, fill the lunch list
+      and get ready for the training.
+    </div>
+    <button class="btn-back" onclick="goBack()">
+      ← Register Another Attendee
+    </button>
+  </div>
+</div>
+
+<script>
+  // ── Your Apps Script deployment URL ─────────────────────
+  // Replace this with your actual deployed Apps Script URL
+  const API = 'YOUR_APPS_SCRIPT_DEPLOYED_URL_HERE';
+
+  let allCourses     = [];
+  let highlightIndex = -1;
+  let isManualEntry  = false;
+
+  // ── Register service worker ──────────────────────────────
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/training-portal/sw.js')
+        .then(reg => console.log('SW registered'))
+        .catch(err => console.log('SW error:', err));
+    });
+  }
+
+  // ── Online/offline detection ─────────────────────────────
+  function updateOnlineStatus() {
+    const banner = document.getElementById('offlineBanner');
+    banner.style.display = navigator.onLine ? 'none' : 'block';
+  }
+  window.addEventListener('online',  updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
+
+  // ── Startup ──────────────────────────────────────────────
+  window.onload = function() {
+    updateOnlineStatus();
+
+    // Load course list from Apps Script
+    fetch(`${API}?action=getCourses`)
+      .then(r => r.json())
+      .then(courses => {
+        if (Array.isArray(courses)) {
+          allCourses = courses;
+          renderDropdown(courses);
+        }
+      })
+      .catch(err => console.log('Course load error:', err));
+
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('startDate').value = today;
+    document.getElementById('endDate').value   = today;
+
+    document.getElementById('startDate')
+      .addEventListener('change', function() {
+        document.getElementById('endDate').value = this.value;
+      });
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.autocomplete-wrapper')) {
+        document.getElementById('courseDropdown').style.display = 'none';
+      }
+    });
+  };
+
+  // ── Smart ID correction ──────────────────────────────────
+  function correctEmpId(id) {
+    let corrected = id.replace(/\s+/g, '');   // remove spaces
+    corrected = corrected.toUpperCase();       // uppercase
+    corrected = corrected.replace(/O/g, '0'); // O → 0
+    return corrected;
+  }
+
+  // ── VERIFY ───────────────────────────────────────────────
+  function verifyAll() {
+    if (!navigator.onLine) {
+      return alert('You are offline. Please connect to the internet and try again.');
+    }
+
+    let rawId = document.getElementById("empId").value.trim();
+    const id  = correctEmpId(rawId);
+    document.getElementById("empId").value = id;
+
+    const title = document.getElementById("selectedCourse").value ||
+                  document.getElementById("courseSearch").value.trim();
+
+    if (!id)    return alert("Please enter your Employee ID.");
+    if (!title) return alert("Please select a Course Title.");
+
+    // Reset state
+    document.getElementById('noticeFound').style.display     = 'none';
+    document.getElementById('noticeNotFound').style.display  = 'none';
+    document.getElementById('verifiedSection').style.display = 'none';
+    document.getElementById('foundFields').style.display     = 'block';
+    document.getElementById('notFoundFields').style.display  = 'none';
+    clearAllFields();
+
+    const verifyBtn = document.getElementById('verifyBtn');
+    verifyBtn.disabled = true;
+    document.getElementById("loader").style.display = "block";
+
+    let empDone    = false;
+    let courseDone = false;
+
+    // Employee lookup
+    fetch(`${API}?action=getStaff&id=${encodeURIComponent(id)}`)
+      .then(r => r.json())
+      .then(function(e) {
+        empDone = true;
+        if (e && e.name) {
+          document.getElementById("name").value     = e.name;
+          document.getElementById("dept").value     = e.dept;
+          document.getElementById("gender").value   = e.gender;
+          document.getElementById("company").value  = e.company;
+          document.getElementById("empType").value  = e.empType;
+          document.getElementById("staffCat").value = e.staffCat;
+          document.getElementById('foundFields').style.display    = 'block';
+          document.getElementById('notFoundFields').style.display = 'none';
+          document.getElementById('noticeFound').style.display    = 'block';
+          isManualEntry = false;
+        } else {
+          document.getElementById('foundFields').style.display    = 'none';
+          document.getElementById('notFoundFields').style.display = 'block';
+          document.getElementById('noticeNotFound').style.display = 'block';
+          isManualEntry = true;
+        }
+        document.getElementById('verifiedSection').style.display = 'block';
+        if (courseDone) {
+          document.getElementById("loader").style.display = "none";
+          verifyBtn.disabled = false;
+        }
+      })
+      .catch(function() {
+        empDone = true;
+        document.getElementById('notFoundFields').style.display  = 'block';
+        document.getElementById('noticeNotFound').style.display  = 'block';
+        document.getElementById('verifiedSection').style.display = 'block';
+        isManualEntry = true;
+        if (courseDone) {
+          document.getElementById("loader").style.display = "none";
+          verifyBtn.disabled = false;
+        }
+      });
+
+    // Course lookup — runs simultaneously
+    fetch(`${API}?action=getCourse&title=${encodeURIComponent(title)}`)
+      .then(r => r.json())
+      .then(function(c) {
+        courseDone = true;
+        if (c && c.faculty) {
+          document.getElementById("faculty").value      = c.faculty;
+          document.getElementById("trainingType").value = c.type;
+          document.getElementById("category").value     = c.category;
+          document.getElementById("location").value     = c.location;
+          document.getElementById("hours").value        = c.hours;
+          document.getElementById("days").value         = c.days;
+          document.getElementById("manHours").value     = c.manHours;
+        } else {
+          alert("Course not found. Please select a valid course.");
+        }
+        if (empDone) {
+          document.getElementById("loader").style.display = "none";
+          verifyBtn.disabled = false;
+        }
+      })
+      .catch(function() {
+        courseDone = true;
+        if (empDone) {
+          document.getElementById("loader").style.display = "none";
+          verifyBtn.disabled = false;
+        }
+      });
+  }
+
+  // ── Clear all fields ─────────────────────────────────────
+  function clearAllFields() {
+    ['name','dept','faculty','gender','company',
+     'empType','staffCat','trainingType','category',
+     'location','hours','days','manHours'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('nameManual').value    = '';
+    document.getElementById('deptManual').value    = '';
+    document.getElementById('genderManual').value  = '';
+    document.getElementById('companyManual').value = '';
+  }
+
+  // ── Course Autocomplete ──────────────────────────────────
+  function renderDropdown(list) {
+    const dropdown = document.getElementById('courseDropdown');
+    dropdown.innerHTML = list.length === 0
+      ? '<div class="no-results">No courses found</div>'
+      : list.map(c =>
+          `<div class="course-option" data-value="${c}"
+                onmousedown="selectCourse('${c.replace(/'/g, "\\'")}')">${c}</div>`
+        ).join('');
+    highlightIndex = -1;
+  }
+
+  function filterCourses() {
+    const query    = document.getElementById('courseSearch').value.toLowerCase();
+    const filtered = allCourses.filter(c => c.toLowerCase().includes(query));
+    renderDropdown(filtered);
+    showDropdown();
+    document.getElementById('selectedCourse').value = '';
+  }
+
+  function showDropdown() {
+    if (allCourses.length > 0)
+      document.getElementById('courseDropdown').style.display = 'block';
+  }
+
+  function selectCourse(value) {
+    document.getElementById('courseSearch').value   = value;
+    document.getElementById('selectedCourse').value = value;
+    document.getElementById('courseDropdown').style.display = 'none';
+  }
+
+  function handleKey(e) {
+    const dropdown = document.getElementById('courseDropdown');
+    const options  = dropdown.querySelectorAll('.course-option');
+    if (e.key === 'ArrowDown') {
+      highlightIndex = Math.min(highlightIndex + 1, options.length - 1);
+    } else if (e.key === 'ArrowUp') {
+      highlightIndex = Math.max(highlightIndex - 1, 0);
+    } else if (e.key === 'Enter' && highlightIndex >= 0) {
+      selectCourse(options[highlightIndex].dataset.value);
+      e.preventDefault();
+      return;
+    } else if (e.key === 'Escape') {
+      dropdown.style.display = 'none';
+      return;
+    }
+    options.forEach((o, i) => o.classList.toggle('active', i === highlightIndex));
+    if (options[highlightIndex])
+      options[highlightIndex].scrollIntoView({ block: 'nearest' });
+  }
+
+  // ── Submit ───────────────────────────────────────────────
+  function submitRecord() {
+    if (!navigator.onLine) {
+      return alert('You are offline. Please connect to the internet to submit.');
+    }
+
+    const name    = isManualEntry
+      ? document.getElementById('nameManual').value.trim()
+      : document.getElementById('name').value.trim();
+
+    const dept    = isManualEntry
+      ? document.getElementById('deptManual').value.trim()
+      : document.getElementById('dept').value.trim();
+
+    const gender  = isManualEntry
+      ? document.getElementById('genderManual').value
+      : document.getElementById('gender').value.trim();
+
+    const company = isManualEntry
+      ? document.getElementById('companyManual').value.trim()
+      : document.getElementById('company').value.trim();
+
+    const startDate = document.getElementById('startDate').value;
+
+    const data = {
+      empId:       document.getElementById("empId").value.trim(),
+      name,
+      gender,
+      empType:     document.getElementById("empType").value,
+      staffCat:    document.getElementById("staffCat").value,
+      dept,
+      company,
+      courseTitle: document.getElementById("selectedCourse").value ||
+                   document.getElementById("courseSearch").value.trim(),
+      type:        document.getElementById("trainingType").value,
+      faculty:     document.getElementById("faculty").value.trim(),
+      category:    document.getElementById("category").value,
+      location:    document.getElementById("location").value,
+      hours:       document.getElementById("hours").value,
+      days:        document.getElementById("days").value,
+      manHours:    document.getElementById("manHours").value,
+      startDate,
+      endDate:     startDate
+    };
+
+    if (!data.name)        return alert("Please enter or verify your Name.");
+    if (!data.gender)      return alert("Please select a Gender.");
+    if (!data.dept)        return alert("Please enter your Department.");
+    if (!data.company)     return alert("Please enter your Company.");
+    if (!data.courseTitle) return alert("Please select a Course.");
+    if (!data.faculty)     return alert("Please click VERIFY first.");
+    if (!data.startDate)   return alert("Please select a Training Date.");
+
+    const btn     = document.getElementById("subBtn");
+    btn.disabled  = true;
+    btn.innerText = "Saving Attendance...";
+
+    fetch(API, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(function(res) {
+      if (res.status === 'Success') {
+        showThankYouPage(data.courseTitle);
+      } else {
+        alert('Submission failed. Please try again.');
+        btn.disabled  = false;
+        btn.innerText = 'SUBMIT ATTENDANCE';
+      }
+    })
+    .catch(function() {
+      alert('Submission failed. Please check your connection and try again.');
+      btn.disabled  = false;
+      btn.innerText = 'SUBMIT ATTENDANCE';
+    });
+  }
+
+  // ── Thank You Page ───────────────────────────────────────
+  function showThankYouPage(courseTitle) {
+    document.getElementById('thankYouCourse').textContent = courseTitle;
+    document.getElementById('formPage').style.display     = 'none';
+    const ty = document.getElementById('thankYouPage');
+    ty.style.display = 'flex';
+    window.scrollTo(0, 0);
+  }
+
+  function goBack() {
+    document.getElementById('thankYouPage').style.display = 'none';
+    document.getElementById('formPage').style.display     = 'block';
+    resetForm();
+  }
+
+  // ── Reset ────────────────────────────────────────────────
+  function resetForm() {
+    document.getElementById("empId").value          = "";
+    document.getElementById("courseSearch").value   = "";
+    document.getElementById("selectedCourse").value = "";
+    document.getElementById("courseDropdown").style.display = "none";
+
+    document.getElementById('verifiedSection').style.display = 'none';
+    document.getElementById('foundFields').style.display     = 'block';
+    document.getElementById('notFoundFields').style.display  = 'none';
+    document.getElementById('noticeFound').style.display     = 'none';
+    document.getElementById('noticeNotFound').style.display  = 'none';
+    document.getElementById('loader').style.display          = 'none';
+
+    clearAllFields();
+    isManualEntry = false;
+
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById("startDate").value = today;
+    document.getElementById("endDate").value   = today;
+
+    const btn     = document.getElementById("subBtn");
+    btn.disabled  = false;
+    btn.innerText = "SUBMIT ATTENDANCE";
+
+    window.scrollTo(0, 0);
+  }
+</script>
+</body>
+</html>
