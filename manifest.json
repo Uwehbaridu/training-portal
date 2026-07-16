@@ -3,19 +3,20 @@
   "short_name": "Training Portal",
   "description": "Indorama Eleme Petrochemicals Training Attendance Registration",
   "start_url": "/training-portal/",
+  "scope": "/training-portal/",
   "display": "standalone",
   "background_color": "#f0f2f5",
   "theme_color": "#004a99",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "/training-portal/web-app-manifest-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icon-512.png",
+      "src": "/training-portal/web-app-manifest-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
